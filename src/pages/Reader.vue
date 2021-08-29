@@ -2,6 +2,7 @@
     <Wrapper class="reader" :brightness="brightness">
         <div class="reader__toolbar">
             <ReturnToLibrary />
+            <Stopwatch />
             <OpenSettings @click="openSettings" />
         </div>
 
@@ -19,6 +20,7 @@ import EpubViewer from '@/components/reader/EpubViewer'
 import Dictionary from '@/components/reader/Dictionary'
 import Settings from '@/components/reader/Settings'
 import OpenSettings from '@/components/reader/OpenSettings'
+import Stopwatch from '@/components/reader/Stopwatch'
 import ReadingProgress from '@/components/reader/ReadingProgress'
 import Vue from 'vue'
 import { mapState } from 'vuex'
@@ -40,7 +42,8 @@ export default {
         ReturnToLibrary,
         OpenSettings,
         EpubViewer,
-        ReadingProgress
+        ReadingProgress,
+        Stopwatch
     },
     data() {
         return {
