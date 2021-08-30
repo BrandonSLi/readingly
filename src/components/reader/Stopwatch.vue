@@ -1,6 +1,7 @@
 <template>
   <div 
     class="stopwatch" 
+    :class="{ 'stopwatch--running': isRunning }"
     @click="handleClick"
   >
     {{ formattedTime }}
@@ -46,5 +47,11 @@ export default {
 <style lang="scss" scoped>
   .stopwatch {
     font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+
+    &--running {
+      font-weight: normal;
+    }
   }
 </style>
