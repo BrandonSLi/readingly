@@ -8,6 +8,15 @@
         />
 
         <div id="epub__viewer" />
+
+        <div 
+            v-show="selection && selectedText" 
+            class="menu" 
+            ref="menu"
+        >
+            <TranslateIcon @click="translateSelectedText" />
+            <ContentCopy @click="copySelectedText" />
+        </div>
     </div>
 </template>
 
@@ -17,6 +26,9 @@ import { mapState, mapMutations } from 'vuex'
 import ClipLoader from 'vue-spinner/src/ClipLoader'
 import when from 'when-key-events'
 import isMobile from 'ismobilejs'
+import TranslateIcon from 'vue-material-design-icons/Translate'
+import ContentCopy from 'vue-material-design-icons/ContentCopy'
+import copy from 'copy-text-to-clipboard'
 
 export default {
     name: 'EpubViewer',
@@ -27,13 +39,17 @@ export default {
         }
     },
     components: {
-        ClipLoader
+        ClipLoader,
+        TranslateIcon,
+        ContentCopy
     },
     data() {
         return {
             rendition: null,
             book: null,
-            loading: true
+            loading: true,
+            selection: null,
+            selectedText: ''
         }
     },
     async mounted() {
@@ -82,6 +98,10 @@ export default {
 
             this.rendition.getContents().forEach(content => {
                 content.content.onclick = () => {
+                    if (this.selectedText) {
+                        return
+                    }
+
                     const selection = content.window.getSelection()
                 
                     selection.modify('extend', 'backward', 'word')       
@@ -95,9 +115,35 @@ export default {
                         this.$emit('text-select', b + a)
                     }
                 }
+
+                content.document.onselectionchange = (e) => {
+                    this.selection = e.target.getSelection()
+                    this.selectedText = this.selection.toString()
+
+                    const { top } = this.selection.getRangeAt(0).getBoundingClientRect()
+                    
+                    this.$refs.menu.style.top = `calc(${ top }px - 1em)`
+                }
+
+                content.document.oncontextmenu = (e) => {
+                    e.preventDefault()
+                }
             })
 
             this.changeFont(this.font)
+        },
+        translateSelectedText() {
+            this.$emit('text-select', this.selectedText)
+            this.clearSelection()
+        },
+        copySelectedText() {
+            copy(this.selectedText)
+            this.clearSelection()
+        },
+        clearSelection() {
+            this.selection.removeAllRanges()
+            this.selectedText = ''
+            this.selection = null
         },
         setupThemes() {
             this.rendition.themes.register('white', { body: { background: '#f9f9f9', color: '#333' }})
@@ -154,6 +200,21 @@ export default {
         justify-content: center;
         background: var(--theme-bg-color);
         color: var(--theme-text-color);
+    }
+
+    .menu {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--theme-text-color);
+        color: var(--theme-bg-color);
+        box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+        padding: 0.5em;
+        border-radius: 4px;
+        font-weight: 600;
+        display: flex;
+        gap: 1em;
+        height: 24px;
     }
 </style>
 
