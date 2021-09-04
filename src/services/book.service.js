@@ -11,7 +11,7 @@ export async function getBookData(file) {
     const book = new Book(file, { openAs: 'binary' })
 
     const { title } = await book.loaded.metadata
-    const cover = await book.archive.getBlob(book.cover)
+    const cover = await fetch(await book.coverUrl()).then(r => r.blob())
 
     const tableOfContents = book.navigation.toc.reduce((array, item) => {
         const subitems = item.subitems.map(subitem => ({
