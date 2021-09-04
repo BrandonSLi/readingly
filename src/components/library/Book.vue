@@ -3,24 +3,21 @@
         <RemoveIcon 
             v-if="removable"
             class="book__remove" 
-            @click="removeBook(book)" 
+            @click="removeBook(book.id)" 
             :size="20" 
         />
         
         <img 
-            class="book__thumbnail"
-            :src="thumbnail"
-            @error="showDefaultThumbnail"
+            class="book__cover"
+            :src="bookCover"
             @click="openBook"
         >
     </div>
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions, mapMutations } from 'vuex'
 import RemoveIcon from 'vue-material-design-icons/Close'
-
-const DEFAULT_BOOK_COVER = 'https://firebasestorage.googleapis.com/v0/b/readingly-ab5f7.appspot.com/o/default_cover.png?alt=media'
 
 export default {
     name: 'Book',
@@ -28,34 +25,28 @@ export default {
         RemoveIcon
     },
     props: {
-        src: {
-            type: String,
+        book: {
+            type: Object,
             required: true,
-            default: ''
+            default: {}
         },
         removable: {
             type: Boolean,
             default: false
         }
     },
-    data() {
-        return {
-            thumbnail: null,
-            book: /o\/(.*)\?/.exec(this.src)[1]
+    computed: {
+        bookCover() {
+            return URL.createObjectURL(this.book.cover);
         }
     },
     methods: {
         ...mapActions('library', ['removeBook']),
+        ...mapMutations('reader', ['setCurrentBook']),
         openBook() {
-            const { book } = this
-            this.$router.push({ name: 'reader', params: { book }})
-        },
-        showDefaultThumbnail() {
-            this.thumbnail = DEFAULT_BOOK_COVER
+            this.setCurrentBook(this.book)
+            this.$router.push({ name: 'reader' })
         }
-    },
-    mounted() {    
-        this.thumbnail = this.src.replace('epub', 'jpg')
     }
 }
 </script>
@@ -78,7 +69,7 @@ export default {
             display: flex;
         }
 
-        &__thumbnail {
+        &__cover {
             width: 120px;
             height: 100%;
             border-radius: 4px; 

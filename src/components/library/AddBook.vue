@@ -12,6 +12,7 @@
 
 <script>
 import AddIcon from 'vue-material-design-icons/Plus'
+import { mapActions } from 'vuex'
 
 export default {
     name: 'AddBook',
@@ -19,6 +20,7 @@ export default {
         AddIcon
     },
     methods: {
+        ...mapActions('library', ['addBook']),
         openFileDialog() {
             this.$refs.input.click()
         },
@@ -30,7 +32,7 @@ export default {
                 return this.$emit('error', 'Invalid book format')
             }
 
-            this.$emit('change', file)
+            this.addBook(file)
         }
     }
 }

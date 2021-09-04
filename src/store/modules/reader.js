@@ -6,7 +6,8 @@ export default {
         theme: 'white',
         brightness: 100,
         progress: 0,
-        font: null
+        font: null,
+        currentBook: null,
     },
 
     mutations: {
@@ -40,6 +41,10 @@ export default {
             if (availableFonts.includes(newFont)) {
                 state.font = newFont
             }
+        },
+
+        setCurrentBook(state, newCurrentBook) {
+            state.currentBook = newCurrentBook
         }
     }
 }

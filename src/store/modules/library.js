@@ -1,11 +1,11 @@
-import { uploadFile, getFiles, deleteFile } from '@/firebase/storage'
-import { createThumbnail } from '@/services/book.service'
+import db from '@/db'
+import { getBookData } from '@/services/book.service'
 
 export default {
     namespaced: true, 
     
     state: {
-        books: [],
+        books: null,
         bookIsUploading: false
     },
 
@@ -25,23 +25,37 @@ export default {
         async addBook({ commit }, book) {
             commit('setBookIsUploading', true)
 
-            const bookUrl = await uploadFile(book)
-            await createThumbnail(bookUrl)
+            const newBook = {
+                file: book,
+                ...(await getBookData(book)),
+                highlights: []
+            }
+            await db.books.add(newBook)
+
+            commit('pushBook', newBook)
 
             commit('setBookIsUploading', false)
-
-            commit('pushBook', bookUrl)
         },
         async getBooks({ commit }) {
-            const books = await getFiles(/.*\.epub/)
+            const books = await db.books.orderBy('id').reverse().toArray()
 
             commit('setBooks', books)
         },
-        async removeBook({ state }, book) {
-            state.books = state.books.filter(bookUrl => !bookUrl.includes(book))
+        async removeBook({ state, commit }, id) {
+            const books = state.books.filter(book => book.id !== id)
+            commit('setBooks', books)
 
-            await deleteFile(book)
-            await deleteFile(book.replace('epub', 'jpg'))
+            await db.books.delete(id)
+        },
+        async updateBook({ state, commit }, { id, newBook }) {
+            const books = state.books.map(book => ({
+                ...book,
+                ...(book.id === id ? newBook : {})
+            }))
+
+            commit('setBooks', books)
+
+            await db.books.update(id, newBook)
         }
     }
 }

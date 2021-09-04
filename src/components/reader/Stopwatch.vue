@@ -49,6 +49,7 @@ export default {
     font-size: 0.9em;
     font-weight: 600;
     cursor: pointer;
+    text-align: center;
 
     &--running {
       font-weight: normal;

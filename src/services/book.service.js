@@ -1,22 +1,37 @@
 import { Book } from 'epubjs'
-import { uploadFile } from '@/firebase/storage'
-import reduce from 'image-blob-reduce'
+import { readFile } from '@/utils'
 
-const reduceImage = reduce()
-
-export async function createThumbnail(file) {
+export async function getBookData(file) {
     if (! file) {
         throw new Error('File is not specified')
     }
-    
-    const name = /o\/(.*)\?/.exec(file)[1].replace('.epub', '')
-    const book = new Book(file, { openAs: 'epub' })
-    await book.loaded.metadata
-    
-    if (book.cover) {
-        const thumbnail = await book.archive.getBlob(book.cover)
-        const reducedThumbnail = await reduceImage.toBlob(thumbnail, {max: 300})
 
-        return uploadFile(reducedThumbnail, { name, ext: 'jpg' })
+    file = await readFile(file);
+
+    const book = new Book(file, { openAs: 'binary' })
+
+    const { title } = await book.loaded.metadata
+    const cover = await book.archive.getBlob(book.cover)
+
+    const tableOfContents = book.navigation.toc.reduce((array, item) => {
+        const subitems = item.subitems.map(subitem => ({
+            label: subitem.label,
+            location: subitem.href
+        }))
+
+        return [
+            ...array, 
+            {
+                label: item.label,
+                location: item.href
+            }, 
+            ...subitems
+        ];
+    }, [])
+    
+    return {
+        title,
+        cover,
+        tableOfContents
     }
 }

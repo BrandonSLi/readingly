@@ -15,33 +15,30 @@
             ref="menu"
         >
             <TranslateIcon @click="translateSelectedText" />
-            <ContentCopy @click="copySelectedText" />
+            <CopyIcon @click="copySelectedText" />
+            <MarkerIcon @click="highlightSelectedText" />
         </div>
     </div>
 </template>
 
 <script>
 import { Book } from 'epubjs'
-import { mapState, mapMutations } from 'vuex'
+import { mapState, mapMutations, mapActions } from 'vuex'
 import ClipLoader from 'vue-spinner/src/ClipLoader'
 import when from 'when-key-events'
 import isMobile from 'ismobilejs'
 import TranslateIcon from 'vue-material-design-icons/Translate'
-import ContentCopy from 'vue-material-design-icons/ContentCopy'
+import CopyIcon from 'vue-material-design-icons/ContentCopy'
+import MarkerIcon from 'vue-material-design-icons/Marker'
 import copy from 'copy-text-to-clipboard'
 
 export default {
     name: 'EpubViewer',
-    props: {
-        src: {
-            type: String,
-            required: true
-        }
-    },
     components: {
         ClipLoader,
         TranslateIcon,
-        ContentCopy
+        CopyIcon,
+        MarkerIcon
     },
     data() {
         return {
@@ -49,11 +46,12 @@ export default {
             book: null,
             loading: true,
             selection: null,
-            selectedText: ''
+            selectedText: '',
+            selectionLocation: '',
         }
     },
     async mounted() {
-        this.book = new Book(this.src, { openAs: 'epub' })
+        this.book = new Book(this.currentBook.file, { openAs: 'binary' })
 
         this.rendition = this.book.renderTo('epub__viewer', {
             manager: 'continuous',
@@ -66,9 +64,8 @@ export default {
 
         this.setupThemes()
     
-        const lastLocation = localStorage.getItem(this.src)
-        if (lastLocation) {
-            this.rendition.display(lastLocation)
+        if (this.currentBook.location) {
+            this.rendition.display(this.currentBook.location)
         } else {
             this.rendition.display()
         }
@@ -76,22 +73,54 @@ export default {
         await this.book.ready
         this.book.locations.generate(1000)
 
+        this.currentBook.highlights.forEach(({ location }) => {
+            this.rendition.annotations.highlight(location)
+        })
+
         this.rendition.on('relocated', this.onRelocated)
         this.rendition.on('rendered', this.onRendered)
+        this.rendition.on('selected', this.onSelected)
 
         when('arrow_left').Execute(() => this.rendition.prev())
         when('arrow_right').Execute(() => this.rendition.next())
     },
-    computed: {
-        ...mapState('reader', ['fontSize', 'theme', 'progress', 'font'])
-    },
+    computed: mapState('reader', [
+        'currentBook',
+        'fontSize', 
+        'theme', 
+        'progress', 
+        'font'
+    ]),
     methods: {
         ...mapMutations('reader', ['setProgress']),
+        ...mapActions('library', ['updateBook']),
         onRelocated(location) {
-            localStorage.setItem(this.src, location.start.cfi)
+            this.updateBook({
+                id: this.currentBook.id,
+                newBook: {
+                    location: location.start.cfi
+                }
+            })
 
             const progress = this.book.locations.percentageFromCfi(location.start.cfi)
             this.setProgress(progress * 100)
+        },
+        onSelected(cfiRange) {
+            this.selectionLocation = cfiRange
+        },
+        highlightSelectedText() {
+            this.rendition.annotations.highlight(this.selectionLocation)
+
+            this.currentBook.highlights.push({ 
+                text: this.selectedText, 
+                location: this.selectionLocation 
+            })
+            this.updateBook({
+                id: this.currentBook.id,
+                newBook: this.currentBook
+            })
+
+            this.clearSelection()
         },
         onRendered() {
             this.loading = false
@@ -146,6 +175,7 @@ export default {
             this.selection = null
         },
         setupThemes() {
+            this.rendition.themes.default({ '::selection': { background: '#f7b3374d' } })
             this.rendition.themes.register('white', { body: { background: '#f9f9f9', color: '#333' }})
             this.rendition.themes.register('black', { body: { background: '#333', color: '#e7e7e7' }})
             this.rendition.themes.register('sepia', { body: { background: '#fbf0d9', color: '#5f4b32' }})
@@ -179,6 +209,9 @@ export default {
         },
         font() {
             this.changeFont(this.font)
+        },
+        currentBook() {
+            this.rendition.display(this.currentBook.location)
         }
     }
 }
@@ -221,5 +254,9 @@ export default {
 <style>
     .epub-container {
         margin: auto;
+    }
+
+    .epubjs-hl {
+        fill: #f7b337;
     }
 </style>

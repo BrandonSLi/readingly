@@ -1,7 +1,7 @@
 <template>
     <div class="library">
         <div class="library__topbar">
-            <AddBook @change="addBook($event)" />
+            <AddBook />
 
             <div>LIBRARY</div>
 
@@ -16,14 +16,14 @@
 
             <ClipLoader
                 class="library__loading"
-                v-show="books.length === 0"
+                v-show="!books"
                 color="var(--theme-text-color)"
                 size="75px"
             />
             <Book 
                 v-for="book in books" 
-                :src="book" 
-                :key="book"
+                :book="book" 
+                :key="book.id"
                 :removable="removeMode"
             />
         </div>
@@ -56,7 +56,7 @@ export default {
     created() {
         this.getBooks()
     },
-    methods: mapActions('library', ['addBook', 'getBooks'])
+    methods: mapActions('library', ['getBooks'])
 }
 </script>
 

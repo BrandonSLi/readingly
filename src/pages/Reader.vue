@@ -2,11 +2,15 @@
     <Wrapper class="reader" :brightness="brightness">
         <div class="reader__toolbar">
             <ReturnToLibrary />
+            <div />
+
             <Stopwatch />
+
+            <OpenTableOfContents @click="openTableOfContents" />
             <OpenSettings @click="openSettings" />
         </div>
 
-        <EpubViewer :src="book" @text-select="openDictionary" />
+        <EpubViewer @text-select="openDictionary" />
 
         <slideout-panel />
 
@@ -19,7 +23,9 @@ import ReturnToLibrary from '@/components/reader/ReturnToLibrary'
 import EpubViewer from '@/components/reader/EpubViewer'
 import Dictionary from '@/components/reader/Dictionary'
 import Settings from '@/components/reader/Settings'
+import TableOfContents from '@/components/reader/TableOfContents'
 import OpenSettings from '@/components/reader/OpenSettings'
+import OpenTableOfContents from '@/components/reader/OpenTableOfContents'
 import Stopwatch from '@/components/reader/Stopwatch'
 import ReadingProgress from '@/components/reader/ReadingProgress'
 import Vue from 'vue'
@@ -32,8 +38,7 @@ const Wrapper = styled('div', { brightness: Number })`
 
 Vue.component('Dictionary', Dictionary)
 Vue.component('Settings', Settings)
-
-const STORAGE_URL = 'https://firebasestorage.googleapis.com/v0/b/readingly-ab5f7.appspot.com/o/@?alt=media'
+Vue.component('TableOfContents', TableOfContents)
 
 export default {
     name: 'Reader',
@@ -41,13 +46,13 @@ export default {
         Wrapper,
         ReturnToLibrary,
         OpenSettings,
+        OpenTableOfContents,
         EpubViewer,
         ReadingProgress,
         Stopwatch
     },
     data() {
         return {
-            book: STORAGE_URL.replace('@', this.$route.params.book),
             panel: null
         }
     },
@@ -58,6 +63,9 @@ export default {
         },
         openSettings() {
             this.panel = this.showPanel('Settings')
+        },
+        openTableOfContents() {
+            this.panel = this.showPanel('TableOfContents')
         },
         showPanel(component, props) {
             const config = {
@@ -79,9 +87,10 @@ export default {
         color: var(--theme-text-color);
         padding: 0 1em;
         height: 32px;
-        display: flex;
+        display: grid;
+        gap: 0.5em;
+        grid-template-columns: 24px 24px auto 24px 24px;
         align-items: center;
-        justify-content: space-between;
     }
 </style>
 
