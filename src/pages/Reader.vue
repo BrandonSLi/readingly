@@ -4,8 +4,6 @@
             <ReturnToLibrary />
             <div />
 
-            <Stopwatch />
-
             <OpenTableOfContents @click="openTableOfContents" />
             <OpenSettings @click="openSettings" />
         </div>
@@ -26,7 +24,6 @@ import Settings from '@/components/reader/Settings'
 import TableOfContents from '@/components/reader/TableOfContents'
 import OpenSettings from '@/components/reader/OpenSettings'
 import OpenTableOfContents from '@/components/reader/OpenTableOfContents'
-import Stopwatch from '@/components/reader/Stopwatch'
 import ReadingProgress from '@/components/reader/ReadingProgress'
 import Vue from 'vue'
 import { mapState } from 'vuex'
@@ -49,7 +46,6 @@ export default {
         OpenTableOfContents,
         EpubViewer,
         ReadingProgress,
-        Stopwatch
     },
     data() {
         return {
