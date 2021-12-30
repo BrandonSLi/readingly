@@ -2,10 +2,11 @@
     <Wrapper class="reader" :brightness="brightness">
         <div class="reader__toolbar">
             <ReturnToLibrary />
-            <div />
 
-            <OpenTableOfContents @click="openTableOfContents" />
-            <OpenSettings @click="openSettings" />
+            <div class="reader__tools">
+                <OpenTableOfContents @click="openTableOfContents" />
+                <OpenSettings @click="openSettings" />
+            </div>
         </div>
 
         <EpubViewer @text-select="openDictionary" />
@@ -78,16 +79,23 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-    .reader__toolbar {
-        background: var(--theme-bg-color);
-        color: var(--theme-text-color);
-        padding: 0 1em;
-        height: 32px;
-        display: grid;
-        gap: 0.5em;
-        grid-template-columns: 24px 24px auto 24px 24px;
-        align-items: center;
+    .reader {
+        &__toolbar {
+            background: var(--theme-bg-color);
+            color: var(--theme-text-color);
+            padding: 0 1em;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        &__tools {
+            display: flex;
+            gap: 0.5rem;
+        }
     }
+    
 </style>
 
 <style lang="scss">
